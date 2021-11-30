@@ -36,8 +36,9 @@ The dashed arrow shows how a new page is "added" to the other
 listings (saved).
 
 ### Class Diagram
-![models](/images/models.png)
+![models](/images/models.png)  
 This image shows a class diagram of the used models.
+
 ## Authors
 
 - [Finn Peranovic](https://github.com/LignumVerus)
