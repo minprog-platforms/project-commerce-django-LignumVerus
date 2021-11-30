@@ -1,5 +1,5 @@
 
-# Crapslist/ Laatsehands/ eBait / Amazoff / AliKaKa / Wahoo! Auctions
+# eBait
 
 This application is an online e-commerce auction site, where users
 can post auction listings, place bids on listings and comment on
