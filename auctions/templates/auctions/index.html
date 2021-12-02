@@ -3,5 +3,26 @@
 {% block body %}
     <h2>Active Listings</h2>
 
-    TODO
+    {% for listing in listings %}
+    {% if listing.active %}
+    <ul>
+        <li><h3><strong>{{ listing.item_name }}</strong></h3></li>
+        <li>
+            <a href="listing/{{ listing.id }}">
+                <img src="{{ listing.photo_url }}" size="30%" alt="no image" 
+                onerror="this.onerror=null;this.src='https://picsum.photos/500/200';">
+            </a>
+        </li>
+        <li>Description: {{ listing.desc }}</li>
+        <li><strong>Starting Bid: ${{ listing.start_bid }}</strong></li>
+        <li>Active: {{ listing.active }}</li>
+        <li>Categories: {{ listing.categories }}</li>
+        <li>Current bid: {{ listing.bids.user }}: {{ listing.bids.price }}</li>
+    </ul>
+    {% endif %}
+
+    {% empty %}
+    No active listings found.
+    {% endfor %}
+
 {% endblock %}
