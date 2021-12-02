@@ -1,0 +1,125 @@
+{% extends "auctions/layout.html" %}
+
+{% load bootstrap %}
+
+{% block body %}
+<div>
+    <div>
+        <h1><b>{{ listing.item_name }}</b></h1>
+        <img src="{{ listing.photo_url }}" size="30%" alt="no image" 
+        onerror="this.onerror=null;this.src='https://picsum.photos/500/200';">
+    </div>
+    <div>
+        Description: <i>{{ listing.desc }}</i>
+    </div>
+
+    <br>
+
+    <div>
+        <b>Current price: $
+            {% if new_bid %}
+                {% if new_bid > old_bid %}
+                    {{ new_bid }}
+
+                    {% else %}
+                        {{ old_bid }}
+                    
+                    {% endif %}
+            {% else %}
+                {{ listing.start_bid}}
+            {% endif %}
+        </b>
+    </div>
+
+    {% if messages %}
+        <br>
+        {% for message in messages %}
+            <div class="alert {{ message.tags }}">
+                <span aria-hidden="true">&times;</span>
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <br>
+    {% if user.is_authenticated and user != listing.user %}
+    <form action="{% url 'listing' listing_id %}" method="post">
+        {% csrf_token %}
+        {{ bid_form|bootstrap }}
+        <input type="submit" name="place_bid" value="Bid">
+    </form>
+    {% endif %}
+
+    {% if user == listing.user %}
+        {% if listing.active is True %}
+            <div>
+                <h4><b>Click here to close your auction:</b></h4>
+                <form action="" method="post">
+                    {% csrf_token %}
+                    <input type="submit" name="close_auction" value="Close">
+                </form>
+                
+                <!-- <button type="submit" form="close_auction" value="Submit">Close</button> -->
+            </div>
+            <br>
+        {% elif listing.active is False %}
+            <h4><b>{{ new_bid.user.username }} has won your auction</b></h4>
+        {% endif %}
+    {% endif %}
+
+    {% if user != listing.user or user.is_authenticated is False %}
+        {% if listing.active is False %}
+            <h4>{{ new_bid.user.username }} has won the auction!</h4>
+        {% endif %}
+    {% endif %}
+
+    {% if user.is_authenticated is False %}
+        <div>
+            <h4><b>(You must be logged in to place a bid)</b></h4>
+        </div>
+    {% endif %}
+
+    <br>
+
+    <h3>Details</h3>
+    <div>
+        Listed by: {{ listing.user.username }}
+        {% if user == listing.user %}
+        <b>(you)</b>
+        {% endif %}
+    </div>
+    <div>
+        Listing ID: {{ listing.id }}
+    </div>
+    <div>
+        Starting bid: ${{ listing.start_bid }}
+    </div>
+
+    <br>
+
+    <h3>Comments</h3>
+
+    {% if user.is_authenticated %}
+    <div>
+        <form action="{% url 'listing' listing_id %}" method="post">
+            {% csrf_token %}
+            {{ comment_form|bootstrap }}
+            <input type="submit" name="place_comment" value="Post">
+        </form>
+    </div>
+    <br>
+    {% endif %}
+
+    <div>
+        <ul>
+            {% for comment in listing.comments.all %}
+                    <li><b>{{ comment.user.username }}:</b> {{ comment.desc }}</li>
+                {% empty %}
+                Be the first to place a comment!
+            {% endfor %}
+        </ul>
+    </div>
+
+</div>
+
+{% endblock %}
