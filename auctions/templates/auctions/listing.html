@@ -47,11 +47,13 @@
     <br>
 
     {% if user.is_authenticated and user != listing.user %}
-    <form action="{% url 'listing' listing_id %}" method="post">
-        {% csrf_token %}
-        {{ bid_form|bootstrap }}
-        <input type="submit" name="place_bid" value="Bid">
-    </form>
+        {% if listing.active is True %}
+        <form action="{% url 'listing' listing_id %}" method="post">
+            {% csrf_token %}
+            {{ bid_form|bootstrap }}
+            <input type="submit" name="place_bid" value="Bid">
+        </form>
+        {% endif %}
     {% endif %}
 
     {% if user == listing.user %}
