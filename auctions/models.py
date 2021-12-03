@@ -21,11 +21,9 @@ class Comment(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="commenters", blank=True)
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE, blank=True, null=True, related_name="comments")
-    #was manytomany (without on_delete and null=true)
 
 class Bid(models.Model):
     price = models.DecimalField(max_digits=8, decimal_places=2)
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="bidders", blank=True)
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE, blank=True, null=True, related_name="bids")
-    #was manytomany

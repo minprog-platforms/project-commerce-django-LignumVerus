@@ -7,7 +7,7 @@
     <div>
         <h1><b>{{ listing.item_name }}</b></h1>
         <img src="{{ listing.photo_url }}" size="30%" alt="no image" 
-        onerror="this.onerror=null;this.src='https://picsum.photos/500/200';">
+        onerror="this.onerror=null;this.src='https://picsum.photos/600/200';">
     </div>
     <div>
         Description: <i>{{ listing.desc }}</i>
@@ -17,18 +17,21 @@
 
     <div>
         <b>Current price: $
-            {% if new_bid %}
-                {% if new_bid > old_bid %}
-                    {{ new_bid }}
-
-                    {% else %}
-                        {{ old_bid }}
-                    
-                    {% endif %}
+            {% if listing.bids.last.price %}
+                {{ listing.bids.last.price }}
             {% else %}
-                {{ listing.start_bid}}
+                {{ listing.start_bid }}
             {% endif %}
         </b>
+    </div>
+
+    <div>
+        {% if listing.bids.last.user %}
+            Highest bidder: {{ listing.bids.last.user.username }}
+                {% if user == listing.bids.last.user %}
+                    <b> (you)</b>
+                {% endif %}
+        {% endif %}
     </div>
 
     {% if messages %}
@@ -42,6 +45,7 @@
     {% endif %}
 
     <br>
+
     {% if user.is_authenticated and user != listing.user %}
     <form action="{% url 'listing' listing_id %}" method="post">
         {% csrf_token %}
@@ -54,32 +58,39 @@
         {% if listing.active is True %}
             <div>
                 <h4><b>Click here to close your auction:</b></h4>
-                <form action="" method="post">
+                <form action="{% url 'listing' listing_id %}" method="post">
                     {% csrf_token %}
                     <input type="submit" name="close_auction" value="Close">
                 </form>
                 
-                <!-- <button type="submit" form="close_auction" value="Submit">Close</button> -->
             </div>
             <br>
         {% elif listing.active is False %}
-            <h4><b>{{ new_bid.user.username }} has won your auction</b></h4>
+            {% if listing.bids.last %}
+                <h4><b>{{ listing.bids.last.user.username }} has won your auction</b></h4>
+            {% else %}
+                <h4><b>Your auction has been closed without a winner</b></h4>
+            {% endif %}
         {% endif %}
     {% endif %}
 
     {% if user != listing.user or user.is_authenticated is False %}
         {% if listing.active is False %}
-            <h4>{{ new_bid.user.username }} has won the auction!</h4>
+            {% if listing.bids.last %}
+                <h4><b>{{ listing.bids.last.user.username }} has won the auction!</b></h4>
+            {% else %}
+                <h4><b>The auction has been closed without a winner</b></h4>
+            {% endif %}
+            <br>
         {% endif %}
     {% endif %}
 
-    {% if user.is_authenticated is False %}
+    {% if user.is_authenticated is False and listing.active %}
         <div>
             <h4><b>(You must be logged in to place a bid)</b></h4>
         </div>
+        <br>
     {% endif %}
-
-    <br>
 
     <h3>Details</h3>
     <div>
@@ -100,14 +111,14 @@
     <h3>Comments</h3>
 
     {% if user.is_authenticated %}
-    <div>
-        <form action="{% url 'listing' listing_id %}" method="post">
-            {% csrf_token %}
-            {{ comment_form|bootstrap }}
-            <input type="submit" name="place_comment" value="Post">
-        </form>
-    </div>
-    <br>
+        <div>
+            <form action="{% url 'listing' listing_id %}" method="post">
+                {% csrf_token %}
+                {{ comment_form|bootstrap }}
+                <input type="submit" name="place_comment" value="Post">
+            </form>
+        </div>
+        <br>
     {% endif %}
 
     <div>
@@ -115,7 +126,7 @@
             {% for comment in listing.comments.all %}
                     <li><b>{{ comment.user.username }}:</b> {{ comment.desc }}</li>
                 {% empty %}
-                Be the first to place a comment!
+                <b>Be the first to place a comment!</b>
             {% endfor %}
         </ul>
     </div>

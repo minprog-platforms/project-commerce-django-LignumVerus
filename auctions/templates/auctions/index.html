@@ -10,14 +10,15 @@
         <li>
             <a href="listing/{{ listing.id }}">
                 <img src="{{ listing.photo_url }}" size="30%" alt="no image" 
-                onerror="this.onerror=null;this.src='https://picsum.photos/500/200';">
+                onerror="this.onerror=null;this.src='https://picsum.photos/600/200';">
             </a>
         </li>
-        <li>Description: {{ listing.desc }}</li>
+        <li>Description: <i>{{ listing.desc }}</i></li>
         <li><strong>Starting Bid: ${{ listing.start_bid }}</strong></li>
-        <li>Active: {{ listing.active }}</li>
+        {% if listing.bids.last.user %}
+            <li><strong>Highest bid: {{ listing.bids.last.user.username }}: ${{ listing.bids.last.price }}</strong></li>
+        {% endif %}
         <li>Categories: {{ listing.categories }}</li>
-        <li>Current bid: {{ listing.bids.user }}: {{ listing.bids.price }}</li>
     </ul>
     {% endif %}
 

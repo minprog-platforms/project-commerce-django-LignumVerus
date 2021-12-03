@@ -116,44 +116,6 @@ class NewBidForm(forms.ModelForm):
         model = Bid
         exclude = ["user", "listing"]
 
-    # def clean(self):
-    #     cleaned_data = super().clean()
-
-    #     # raises error when bid is not valid
-    #     if self.old_bid == self.start_bid:
-    #         if self.old_bid > self.new_bid:
-    #             msg = "Your bid must be higher or equal than the starting bid"
-    #             self.add_error("price", msg)
-    #             raise ValidationError(msg)
-    #     else:
-    #         if self.old_bid >= self.new_bid:
-    #             msg = "Your bid must be higher than the current bid"
-    #             self.add_error("price", msg)
-    #             raise ValidationError(msg)
-
-    #     return self.cleaned_data
-
-    # def __init__(self, *args, **kwargs):
-    #     super(NewBidForm, self).__init__(*args, **kwargs)
-
-    #     # gets new bid and old bid (get was listing=listing.id)
-
-    #     #NEW
-    #     #listing = Listing.objects.get(id=Listing.id)
-
-    #     self.start_bid = Bid.objects.get(listing=listing.id).listing.start_bid
-    #     self.new_bid = Bid.objects.filter(listing=listing.id).last().price
-
-    #     # try to get second highest bid as old bid if there are multiple bids
-    #     try:
-    #         self.old_bid = Bid.objects.filter(listing=listing.id).order_by('-price')[1].price
-    #     except Exception:
-    #         # if there is only one bid, get that one as the old bid
-    #         try:
-    #             self.old_bid = Bid.objects.get(listing=listing.id).price
-    #         # if there are none, take starting bid as old bid
-    #         except Exception:
-    #             self.old_bid = self.start_bid
 
 class NewCommentForm(forms.ModelForm):
     desc = forms.CharField(strip=True,
@@ -164,11 +126,6 @@ class NewCommentForm(forms.ModelForm):
         model = Comment
         exclude = ["user", "listing"]
 
-# TODO FILL IN??
-class CloseAuctionForm(forms.ModelForm):
-
-    class Meta:
-        pass
 
 def listing(request, listing_id):
     listing_id = int(listing_id)
@@ -180,7 +137,7 @@ def listing(request, listing_id):
         if bid_form.is_valid():
             new_entry = bid_form.save(commit=False)
             new_entry.user = request.user
-            new_entry.listing = Listing.objects.get(id=listing_id)
+            new_entry.listing = listing
 
             # first, check if any input was invalid and show an error when it is
             start_bid = new_entry.listing.start_bid
@@ -194,10 +151,16 @@ def listing(request, listing_id):
                 old_bid = start_bid
                 print(f"LAST EXCEPTION BLOCK {old_bid}")
 
-            if new_bid > start_bid and new_bid > old_bid:
-                # if input was valid, save the new entry.
+            # if input was valid, save the new entry.
+            if start_bid == old_bid and Bid.objects.filter(listing=listing_id).count() == 0:
+                if new_bid >= old_bid:
+                    new_entry.save()
+                    messages.success(request, 'Your bid was placed successfully!')
+                else:
+                    messages.warning(request, "Your bid must be higher than or equal to the starting bid")
+            elif new_bid > start_bid and new_bid > old_bid:
                 new_entry.save()
-                messages.success(request, 'Your bid was placed successfully!')
+                messages.success(request, "Your bid was placed successfully!")
             else:
                 messages.warning(request, "Your bid must be higher than the previous bid")
 
@@ -219,7 +182,7 @@ def listing(request, listing_id):
             new_entry.user = request.user
             print(new_entry.user.username)
 
-            new_entry.listing = Listing.objects.get(id=listing_id)
+            new_entry.listing = listing
             print(new_entry.listing.id)
             new_entry.save()
 
@@ -231,9 +194,10 @@ def listing(request, listing_id):
                 "comments": Comment.objects.filter(listing=listing_id)
                 })
 
-    if request.method == "POST" and "place_comment" in request.POST:
-        # TODO
-        pass
+    # button that closes listing
+    if request.method == "POST" and "close_auction" in request.POST:
+        listing.active = False
+        listing.save()
 
     return render(request, "auctions/listing.html", {
         "listing_id": listing_id,
